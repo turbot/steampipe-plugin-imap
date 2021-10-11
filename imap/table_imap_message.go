@@ -35,7 +35,8 @@ func tableIMAPMessage(ctx context.Context) *plugin.Table {
 			// Top columns
 			{Name: "timestamp", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromField("Envelope.Date"), Description: "Time when the message was sent."},
 			{Name: "from_email", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("From").Transform(getFirstAddress), Description: "Email address, in lower case, of the first (and usually only) mailbox in the From header."},
-			{Name: "subject", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Description: "Subject of the message."},
+			// Getting the subject from the envelope is more reliable for parsing
+			{Name: "subject", Type: proto.ColumnType_STRING, Transform: transform.FromField("Envelope.Subject"), Description: "Subject of the message."},
 			// Other columns
 			{Name: "attachments", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("Attachments").Transform(getAttachmentsWithoutData), Description: "Array of the names and content types of any attachments. The actual content of the attachment is not included."},
 			{Name: "bcc", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("BCC"), Description: "The bcc field (where the 'BCC' means 'Blind Carbon Copy') contains addresses of recipients of the message whose addresses are not to be revealed to other recipients of the message."},
