@@ -9,4 +9,11 @@ connection "imap" {
 
   # Required: Password.
   # password = "Great Scott!"
+
+  # Example Gmail configuration
+  # host = "imap.gmail.com"
+  # port = 993
+  # tls_enabled = true
+  # login = "michael@gmail.com"
+  # password = "Password1234"
 }

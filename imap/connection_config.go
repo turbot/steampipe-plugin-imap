@@ -12,6 +12,7 @@ type imapConfig struct {
 	Password           *string `cty:"password"`
 	TLSEnabled         *bool   `cty:"tls_enabled"`
 	InsecureSkipVerify *bool   `cty:"insecure_skip_verify"`
+	Mailbox            *string `cty:"mailbox"`
 }
 
 var ConfigSchema = map[string]*schema.Attribute{
@@ -32,6 +33,9 @@ var ConfigSchema = map[string]*schema.Attribute{
 	},
 	"insecure_skip_verify": {
 		Type: schema.TypeBool,
+	},
+	"mailbox": {
+		Type: schema.TypeString,
 	},
 }
 

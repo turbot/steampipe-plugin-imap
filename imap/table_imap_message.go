@@ -4,9 +4,11 @@ import (
 	"context"
 	"net/mail"
 	"strings"
+	"time"
+	"unicode/utf8"
 
-	"github.com/DusanKasan/parsemail"
 	"github.com/emersion/go-imap"
+	"github.com/jhillyerd/enmime"
 
 	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
 	"github.com/turbot/steampipe-plugin-sdk/plugin"
@@ -16,16 +18,15 @@ import (
 func tableIMAPMessage(ctx context.Context) *plugin.Table {
 	return &plugin.Table{
 		Name:        "imap_message",
-		Description: "Messagees in IMAP.",
+		Description: "Messages in IMAP.",
 		List: &plugin.ListConfig{
 			Hydrate: tableIMAPMessageList,
 			KeyColumns: []*plugin.KeyColumn{
-				{Name: "mailbox"},
+				{Name: "mailbox", Require: plugin.Optional},
 				{Name: "size", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 				{Name: "timestamp", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 				{Name: "seq_num", Operators: []string{">", ">=", "=", "<", "<="}, Require: plugin.Optional},
 				{Name: "from_email", Require: plugin.Optional},
-				{Name: "sender", Require: plugin.Optional},
 				{Name: "message_id", Require: plugin.Optional},
 				{Name: "subject", Require: plugin.Optional},
 				{Name: "query", Require: plugin.Optional},
@@ -33,33 +34,50 @@ func tableIMAPMessage(ctx context.Context) *plugin.Table {
 		},
 		Columns: []*plugin.Column{
 			// Top columns
-			{Name: "timestamp", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromField("Envelope.Date"), Description: "Time when the message was sent."},
-			{Name: "from_email", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("From").Transform(getFirstAddress), Description: "Email address, in lower case, of the first (and usually only) mailbox in the From header."},
-			// Getting the subject from the envelope is more reliable for parsing
-			{Name: "subject", Type: proto.ColumnType_STRING, Transform: transform.FromField("Envelope.Subject"), Description: "Subject of the message."},
-			// Other columns
-			{Name: "attachments", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("Attachments").Transform(getAttachmentsWithoutData), Description: "Array of the names and content types of any attachments. The actual content of the attachment is not included."},
-			{Name: "bcc", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("BCC"), Description: "The bcc field (where the 'BCC' means 'Blind Carbon Copy') contains addresses of recipients of the message whose addresses are not to be revealed to other recipients of the message."},
-			{Name: "cc", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("CC"), Description: "The cc field (where the 'CC' means 'Carbon Copy' in the sense of making a copy on a typewriter using carbon paper) contains the addresses of others who are to receive the message, though the content of the message may not be directed at them."},
-			{Name: "content_type", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Description: "Content type of the message."},
-			{Name: "embedded_files", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("EmbeddedFiles").Transform(getEmbeddedFilesWithoutData), Description: "Array of content IDs and types for embedded files in the message. The actual content of the embedded file is not included."},
-			{Name: "flags", Type: proto.ColumnType_JSON, Transform: transform.FromField("Flags"), Description: "Flags set on the message."},
-			{Name: "from", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("From"), Description: "The from field specifies the author(s) of the message, that is, the mailbox(es) of the person(s) or system(s) responsible for the writing of the message."},
-			{Name: "header", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "Map of key value pairs for message header information."},
-			{Name: "html_body", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Description: "HTML formatted body of the message."},
-			{Name: "in_reply_to", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "The message_id of the message to which this one is a reply (the parent message)."},
-			{Name: "mailbox", Type: proto.ColumnType_STRING, Transform: transform.FromQual("mailbox"), Description: "Mailbox queried for messages."},
+			{Name: "timestamp", Type: proto.ColumnType_TIMESTAMP, Hydrate: tableIMAPParsedMessage, Description: "Time when the message was sent."},
+			{Name: "from_email", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("FromAddresses").Transform(getFirstAddress), Description: "Email address, in lower case, of the first (and usually only) mailbox in the From header."},
+			{Name: "subject", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("Subject"), Description: "Subject of the message."},
 			{Name: "message_id", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Description: "Unique message identifier that refers to a particular version of a particular message."},
+			{Name: "to_addresses", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "Array of To addresses."},
+			{Name: "cc_addresses", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "Array of CC addresses."},
+			{Name: "bcc_addresses", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "Array of BCC addresses."},
+			{Name: "seq_num", Type: proto.ColumnType_INT, Transform: transform.FromField("Message.SeqNum"), Description: "Sequence number of the message."},
+			{Name: "size", Type: proto.ColumnType_INT, Transform: transform.FromField("Message.Size"), Description: "Size in bytes of the message."},
+			// Other columns
+			{Name: "attachments", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("Envelope.Attachments").Transform(getAttachmentsWithoutData), Description: "All parts having a Content-Disposition of attachment."},
+			{Name: "body_html", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Description: "HTML body of the message."},
+			{Name: "body_text", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Description: "Text body of the message."},
+			{Name: "embedded_files", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("Envelope.Inlines").Transform(getAttachmentsWithoutData), Description: "All parts having a Content-Disposition of inline."},
+			{Name: "errors", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("Envelope.Errors"), Description: "Errors returned while parsing the email."},
+			{Name: "flags", Type: proto.ColumnType_JSON, Transform: transform.FromField("Message.Flags"), Description: "Flags set on the message."},
+			{Name: "from_addresses", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "Array of From addresses."},
+			{Name: "headers", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("Envelope.Root.Header"), Description: "Full set of headers defined in the message."},
+			{Name: "in_reply_to", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "Array of message IDs that this message is a reply to."},
+			{Name: "mailbox", Type: proto.ColumnType_STRING, Description: "Mailbox queried for messages."},
 			{Name: "query", Type: proto.ColumnType_STRING, Transform: transform.FromQual("query"), Description: "Search query to match messages."},
-			{Name: "references", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "An array of message_id's for the parent and it's ancestors."},
-			{Name: "reply_to", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "An array of mailboxes that replies to this message should be sent to."},
-			{Name: "sender", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("Sender.Address"), Description: "The mailbox of the agent responsible for the actual transmission of the message. For example, if a secretary were to send a message for another person, the mailbox of the secretary would appear in the sender field and the mailbox of the actual author would appear in the from field."},
-			{Name: "seq_num", Type: proto.ColumnType_INT, Description: "Sequence number of the message."},
-			{Name: "size", Type: proto.ColumnType_INT, Description: "Size in bytes of the message."},
-			{Name: "text_body", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Description: "Text formatted body of the message."},
-			{Name: "to", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "List of mailboxes the message was sent to."},
 		},
 	}
+}
+
+type msgWrapper struct {
+	Message *imap.Message
+	Mailbox string
+}
+
+type wrapper struct {
+	Mailbox       string
+	Envelope      *enmime.Envelope
+	FromAddresses []*mail.Address
+	ToAddresses   []*mail.Address
+	CcAddresses   []*mail.Address
+	BccAddresses  []*mail.Address
+	Timestamp     time.Time
+	InReplyTo     []string
+	MessageID     string
+	From          string
+	Subject       string
+	BodyText      string
+	BodyHTML      string
 }
 
 func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) (interface{}, error) {
@@ -70,17 +88,34 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 	defer c.Logout()
 
-	// Select the mailbox
-	mailbox := d.KeyColumnQuals["mailbox"].GetStringValue()
+	// Convenience
+	quals := d.Quals
+	keyQuals := d.KeyColumnQuals
+
+	// Select the mailbox for queries:
+	// 1. Check the mailbox qual
+	// 2. Use the mailbox config setting
+	// 3. Default to INBOX
+	var mailbox string
+	if keyQuals["mailbox"] != nil {
+		mailbox = keyQuals["mailbox"].GetStringValue()
+	} else if d.Connection != nil {
+		imapConfig := GetConfig(d.Connection)
+		if &imapConfig != nil {
+			if imapConfig.Mailbox != nil {
+				mailbox = *imapConfig.Mailbox
+			}
+		}
+	}
+	if mailbox == "" {
+		mailbox = "INBOX"
+	}
+
 	mbox, err := c.Select(mailbox, false)
 	if err != nil {
 		plugin.Logger(ctx).Error("imap_message.tableIMAPMessageList", "query_error", err, "mailbox", mailbox)
 		return nil, err
 	}
-
-	// Convenience
-	quals := d.Quals
-	keyQuals := d.KeyColumnQuals
 
 	// Setup search criteria
 	criteria := imap.NewSearchCriteria()
@@ -134,25 +169,26 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		criteria.Header.Add("From", keyQuals["from_email"].GetStringValue())
 	}
 
-	if keyQuals["sender"] != nil {
-		criteria.Header.Add("Sender", keyQuals["sender"].GetStringValue())
-	}
-
+	// Note: I don't know how these SentSince and SentBefore settings work,
+	// because in testing they seem to be (kinda) on date boundaries, not on
+	// timestamp boundaries. So, the only approach I could think to make it
+	// accurate is to expand the search 24 hours each side and leave the Postgres
+	// engine to do the final filtering.
 	if quals["timestamp"] != nil {
 		for _, q := range quals["timestamp"].Quals {
 			ts := q.Value.GetTimestampValue().AsTime()
 			switch q.Operator {
 			case ">":
-				criteria.SentSince = ts
+				criteria.SentSince = ts.Add(-24 * time.Hour)
 			case ">=":
-				criteria.SentSince = ts
+				criteria.SentSince = ts.Add(-24 * time.Hour)
 			case "=":
-				criteria.SentSince = ts
-				criteria.SentBefore = ts
+				criteria.SentSince = ts.Add(-24 * time.Hour)
+				criteria.SentBefore = ts.Add(24 * time.Hour)
 			case "<=":
-				criteria.SentBefore = ts
+				criteria.SentBefore = ts.Add(24 * time.Hour)
 			case "<":
-				criteria.SentBefore = ts
+				criteria.SentBefore = ts.Add(24 * time.Hour)
 			}
 		}
 	}
@@ -176,13 +212,15 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		}
 	}
 
-	plugin.Logger(ctx).Debug("imap_message.tableIMAPMessageList", "criteria", criteria)
+	plugin.Logger(ctx).Warn("imap_message.tableIMAPMessageList", "criteria", criteria)
 
 	ids, err := c.Search(criteria)
 	if err != nil {
 		plugin.Logger(ctx).Error("imap_message.tableIMAPMessageList", "query_error", err, "criteria", criteria)
 		return nil, err
 	}
+
+	plugin.Logger(ctx).Warn("imap_message.tableIMAPMessageList", "ids", ids)
 
 	if len(ids) == 0 {
 		return nil, nil
@@ -208,7 +246,11 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}()
 
 	for msg := range messages {
-		d.StreamListItem(ctx, msg)
+		mw := msgWrapper{
+			Message: msg,
+			Mailbox: mailbox,
+		}
+		d.StreamListItem(ctx, mw)
 	}
 
 	if err := <-done; err != nil {
@@ -220,48 +262,118 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 }
 
 func tableIMAPParsedMessage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
-	msg := h.Item.(*imap.Message)
+	mw := h.Item.(msgWrapper)
+
+	/*
+		if mw == nil {
+			return wrapper{}, nil
+		}
+	*/
+
+	// Convenience
+	msg := mw.Message
+
 	r := msg.GetBody(&imap.BodySectionName{})
-	email, err := parsemail.Parse(r)
+
+	// Parse message body
+	env, err := enmime.ReadEnvelope(r)
 	if err != nil {
-		plugin.Logger(ctx).Error("imap_message.tableIMAPParsedMessage", "message_parse_error", err, "subject", msg.Envelope.Subject)
-		return nil, err
+		plugin.Logger(ctx).Error("imap_message.tableIMAPParsedMessage", "CANNOT READ ENVELOPE", msg.Envelope.Subject)
+		return nil, nil
 	}
-	return email, nil
+
+	te := wrapper{
+		Mailbox:   mw.Mailbox,
+		Envelope:  env,
+		From:      env.GetHeader("From"),
+		Subject:   env.GetHeader("Subject"),
+		MessageID: env.GetHeader("Message-Id"),
+		InReplyTo: env.GetHeaderValues("In-Reply-To"),
+	}
+
+	from, err := env.AddressList("From")
+	if err == nil {
+		te.FromAddresses = from
+	}
+	to, err := env.AddressList("To")
+	if err == nil {
+		te.ToAddresses = to
+	}
+	cc, err := env.AddressList("CC")
+	if err == nil {
+		te.CcAddresses = cc
+	}
+	bcc, err := env.AddressList("BCC")
+	if err == nil {
+		te.BccAddresses = bcc
+	}
+	dateString := env.GetHeader("Date")
+	if dateString != "" {
+		ts, err := mail.ParseDate(dateString)
+		if err == nil {
+			te.Timestamp = ts
+		}
+	}
+
+	// It's common for emails to have non-UTF strings. They cause the gRPC layer
+	// to fail, so filter that invalid data out here.
+	if utf8.ValidString(env.Text) {
+		te.BodyText = env.Text
+	}
+	if utf8.ValidString(env.HTML) {
+		te.BodyHTML = env.HTML
+	}
+
+	return te, nil
 }
 
 type attachmentWithoutData struct {
-	Filename    string
-	ContentType string
-}
-
-type embeddedFileWithoutData struct {
-	CID         string
-	ContentType string
-}
-
-func getAttachmentsWithoutData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	items := d.Value.([]parsemail.Attachment)
-	result := []attachmentWithoutData{}
-	for _, i := range items {
-		result = append(result, attachmentWithoutData{Filename: i.Filename, ContentType: i.ContentType})
-	}
-	return result, nil
-}
-
-func getEmbeddedFilesWithoutData(_ context.Context, d *transform.TransformData) (interface{}, error) {
-	items := d.Value.([]parsemail.EmbeddedFile)
-	result := []embeddedFileWithoutData{}
-	for _, i := range items {
-		result = append(result, embeddedFileWithoutData{CID: i.CID, ContentType: i.ContentType})
-	}
-	return result, nil
+	PartID string `json:"part_id,omitempty"`
+	//Header            textproto.MIMEHeader `json:"header,omitempty"`
+	Boundary          string            `json:"boundary,omitempty"`
+	ContentID         string            `json:"content_id,omitempty"`
+	ContentType       string            `json:"content_type,omitempty"`
+	ContentTypeParams map[string]string `json:"content_type_params,omitempty"`
+	Disposition       string            `json:"disposition,omitempty"`
+	FileName          string            `json:"file_name,omitempty"`
+	//FileModDate       time.Time         `json:"file_mod_date,omitempty"`
+	Charset     string          `json:"charset,omitempty"`
+	OrigCharset string          `json:"orig_charset,omitempty"`
+	Errors      []*enmime.Error `json:"errors,omitempty"`
 }
 
 func getFirstAddress(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	if d.Value == nil {
+		return nil, nil
+	}
 	items := d.Value.([]*mail.Address)
 	if len(items) > 0 {
 		return strings.ToLower(items[0].Address), nil
 	}
 	return nil, nil
+}
+
+func getAttachmentsWithoutData(_ context.Context, d *transform.TransformData) (interface{}, error) {
+	if d.Value == nil {
+		return nil, nil
+	}
+	items := d.Value.([]*enmime.Part)
+	result := []attachmentWithoutData{}
+	for _, i := range items {
+		result = append(result, attachmentWithoutData{
+			PartID: i.PartID,
+			//Header:            i.Header,
+			Boundary:          i.Boundary,
+			ContentID:         i.ContentID,
+			ContentType:       i.ContentType,
+			ContentTypeParams: i.ContentTypeParams,
+			Disposition:       i.Disposition,
+			FileName:          i.FileName,
+			//FileModDate:       i.FileModDate,
+			Charset:     i.Charset,
+			OrigCharset: i.OrigCharset,
+			Errors:      i.Errors,
+		})
+	}
+	return result, nil
 }
