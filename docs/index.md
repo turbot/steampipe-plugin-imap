@@ -1,6 +1,6 @@
 ---
 organization: Turbot
-category: ["public cloud"]
+category: ["internet"]
 icon_url: "/images/plugins/turbot/imap.svg"
 brand_color: "#666666"
 display_name: "IMAP"
@@ -25,8 +25,6 @@ select
   subject
 from
   imap_message
-where
-  mailbox = 'INBOX'
 ```
 
 ```
@@ -55,13 +53,16 @@ steampipe plugin install imap
 
 ### Configuration
 
-Installing the latest imap plugin will create a config file (`~/.steampipe/config/imap.spc`) with a single connection named `imap`:
+Installing the latest imap plugin will create a config file (`~/.steampipe/config/imap.spc`) with a single connection named `imap`.
+
+Here is an example configuration for Gmail, which requires [allowing your user to use less secure apps](https://support.google.com/a/answer/6260879?hl=en).
 
 ```hcl
 connection "imap" {
-  plugin = "imap"
-  host = "imap.gmail.com"
-  login = "michael@dundermifflin.com"
+  plugin   = "imap"
+  host     = "imap.gmail.com"
+  port     = 993
+  login    = "michael@dundermifflin.com"
   password = "Great Scott!"
 }
 ```
@@ -72,6 +73,7 @@ connection "imap" {
 - `port` - Port to connect on the host, usually 143 for IMAP and 993 for IMAPS. Default 993.
 - `tls_enabled` - If true, use TLS to connecto the host. Default true.
 - `insecure_skip_verify` - If true, skip certificate verification. Default false.
+- `mailbox` - The mailbox to query for messages if not specifically given in the query. Default is INBOX.
 
 ## Get involved
 

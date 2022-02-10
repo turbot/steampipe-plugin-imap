@@ -1,12 +1,24 @@
 # Table: imap_message
 
-Read messages from a given mailbox.
+Query messages from a given mailbox.
 
-Note: A `mailbox` must be provided in all queries to this table.
+All queries are against a single mailbox, chosen in this order of precedence:
+1. A `where mailbox = 'INBOX'` qualifier in the query.
+2. The `mailbox` config setting in `imap.spc`.
+3. Default is `INBOX`.
 
 ## Examples
 
-### List messages from the Inbox
+### List messages from the default mailbox (e.g. INBOX)
+
+```sql
+select
+  *
+from
+  imap_message
+```
+
+### List messages from a specific mailbox
 
 ```sql
 select
@@ -14,7 +26,7 @@ select
 from
   imap_message
 where
-  mailbox = 'INBOX'
+  mailbox = '[Gmail]/Starred'
 ```
 
 ### Find messages greater than 1MB in size
@@ -28,10 +40,25 @@ select
 from
   imap_message
 where
-  mailbox = 'INBOX'
-  and size > 1000000
+  size > 1000000
 order by
   size desc
+```
+
+### List messages received between 7 and 14 days ago
+
+```sql
+select
+  timestamp,
+  from_email,
+  subject
+from
+  imap_message
+where
+  timestamp > current_timestamp - interval '14 days'
+  and timestamp < current_timestamp - interval '7 days'
+order by
+  timestamp
 ```
 
 ### Find messages from a given address
@@ -44,8 +71,7 @@ select
 from
   imap_message
 where
-  mailbox = 'INBOX'
-  and from_email = 'jim@dundermifflin.com'
+  from_email = 'jim@dundermifflin.com'
 ```
 
 ### Search drafts for messages with a keyword
@@ -69,8 +95,8 @@ select
   m.timestamp,
   m.from_email,
   m.subject,
-  a ->> 'Filename' as attachment_filename,
-  a ->> 'ContentType' as attachment_content_type
+  a ->> 'file_name' as attachment_filename,
+  a ->> 'content_type' as attachment_content_type
 from
   imap_message as m,
   jsonb_array_elements(attachments) as a

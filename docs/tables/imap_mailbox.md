@@ -1,6 +1,6 @@
 # Table: imap_mailbox
 
-Mailboxes accessible on the IMAP server.
+Query information about mailboxes accessible on the IMAP server (e.g. `INBOX`, `[Gmail]/Sent Mail`).
 
 ## Examples
 
