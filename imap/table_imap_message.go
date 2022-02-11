@@ -264,12 +264,6 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 func tableIMAPParsedMessage(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	mw := h.Item.(msgWrapper)
 
-	/*
-		if mw == nil {
-			return wrapper{}, nil
-		}
-	*/
-
 	// Convenience
 	msg := mw.Message
 
@@ -286,9 +280,14 @@ func tableIMAPParsedMessage(ctx context.Context, d *plugin.QueryData, h *plugin.
 		Mailbox:   mw.Mailbox,
 		Envelope:  env,
 		From:      env.GetHeader("From"),
-		Subject:   env.GetHeader("Subject"),
 		MessageID: env.GetHeader("Message-Id"),
 		InReplyTo: env.GetHeaderValues("In-Reply-To"),
+	}
+
+	// Sometimes the subject has invalid UTF-8
+	subject := env.GetHeader("Subject")
+	if utf8.ValidString(subject) {
+		te.Subject = subject
 	}
 
 	from, err := env.AddressList("From")
