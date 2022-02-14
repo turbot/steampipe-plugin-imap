@@ -24,7 +24,7 @@ select
   from_email,
   subject
 from
-  imap_message
+  imap_message;
 ```
 
 ```
@@ -78,4 +78,4 @@ connection "imap" {
 ## Get involved
 
 - Open source: https://github.com/turbot/steampipe-plugin-imap
-- Community: [Slack Channel](https://join.slack.com/t/steampipe/shared_invite/zt-oij778tv-lYyRTWOTMQYBVAbtPSWs3g)
+- Community: [Slack Channel](https://steampipe.io/community/join)
