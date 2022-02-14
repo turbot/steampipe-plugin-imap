@@ -2,7 +2,7 @@
 organization: Turbot
 category: ["internet"]
 icon_url: "/images/plugins/turbot/imap.svg"
-brand_color: "#666666"
+brand_color: "#003FFF"
 display_name: "IMAP"
 short_name: "imap"
 description: "Steampipe plugin to query mailboxes and messages using IMAP."
