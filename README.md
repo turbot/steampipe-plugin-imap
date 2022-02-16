@@ -27,7 +27,7 @@ select
 from
   imap_message
 where
-  mailbox = 'INBOX'
+  mailbox = 'INBOX';
 ```
 
 ```
