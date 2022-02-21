@@ -289,6 +289,12 @@ func tableIMAPParsedMessage(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if utf8.ValidString(subject) {
 		te.Subject = subject
 	}
+	
+	// Even the messageID is not always valid UTF-8!
+	messageID := env.GetHeader("Message-Id")
+	if utf8.ValidString(messageID) {
+		te.MessageID = messageID
+	}	
 
 	from, err := env.AddressList("From")
 	if err == nil {
