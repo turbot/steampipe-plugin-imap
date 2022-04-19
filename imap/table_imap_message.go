@@ -86,8 +86,13 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
-	defer c.Logout()
+	defer func() {
+		err = c.Logout()
+	}()
 
+	if err != nil {
+		return nil, err
+	}
 	// Convenience
 	quals := d.Quals
 	keyQuals := d.KeyColumnQuals
@@ -101,10 +106,8 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 		mailbox = keyQuals["mailbox"].GetStringValue()
 	} else if d.Connection != nil {
 		imapConfig := GetConfig(d.Connection)
-		if &imapConfig != nil {
-			if imapConfig.Mailbox != nil {
-				mailbox = *imapConfig.Mailbox
-			}
+		if imapConfig.Mailbox != nil {
+			mailbox = *imapConfig.Mailbox
 		}
 	}
 	if mailbox == "" {
@@ -130,7 +133,6 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 			case "=":
 				from = sn
 				to = sn
-				break
 			case ">":
 				if sn >= from {
 					from = sn + 1

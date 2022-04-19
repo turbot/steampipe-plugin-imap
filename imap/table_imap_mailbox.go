@@ -39,7 +39,13 @@ func tableIMAPMailboxList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	if err != nil {
 		return nil, err
 	}
-	defer c.Logout()
+	defer func() {
+		err = c.Logout()
+	}()
+
+	if err != nil {
+		return nil, err
+	}
 
 	// Default to all mailboxes, but limit to the requested mailbox if given in a qual
 	name := "*"
@@ -71,7 +77,13 @@ func tableIMAPMailboxGet(ctx context.Context, d *plugin.QueryData, h *plugin.Hyd
 	if err != nil {
 		return nil, err
 	}
-	defer c.Logout()
+	defer func() {
+		err = c.Logout()
+	}()
+
+	if err != nil {
+		return nil, err
+	}
 
 	name := h.Item.(*imap.MailboxInfo).Name
 
