@@ -5,8 +5,8 @@ import (
 
 	"github.com/emersion/go-imap"
 
-	"github.com/turbot/steampipe-plugin-sdk/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v3/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v3/plugin"
 )
 
 func tableIMAPMailbox(ctx context.Context) *plugin.Table {
