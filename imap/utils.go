@@ -20,25 +20,23 @@ func login(ctx context.Context, d *plugin.QueryData) (*client.Client, error) {
 
 	// Prefer config settings
 	imapConfig := GetConfig(d.Connection)
-	if &imapConfig != nil {
-		if imapConfig.Host != nil {
-			host = *imapConfig.Host
-		}
-		if imapConfig.Port != nil {
-			port = *imapConfig.Port
-		}
-		if imapConfig.Login != nil {
-			login = *imapConfig.Login
-		}
-		if imapConfig.Password != nil {
-			password = *imapConfig.Password
-		}
-		if imapConfig.TLSEnabled != nil {
-			tlsEnabled = *imapConfig.TLSEnabled
-		}
-		if imapConfig.InsecureSkipVerify != nil {
-			insecureSkipVerify = *imapConfig.InsecureSkipVerify
-		}
+	if imapConfig.Host != nil {
+		host = *imapConfig.Host
+	}
+	if imapConfig.Port != nil {
+		port = *imapConfig.Port
+	}
+	if imapConfig.Login != nil {
+		login = *imapConfig.Login
+	}
+	if imapConfig.Password != nil {
+		password = *imapConfig.Password
+	}
+	if imapConfig.TLSEnabled != nil {
+		tlsEnabled = *imapConfig.TLSEnabled
+	}
+	if imapConfig.InsecureSkipVerify != nil {
+		insecureSkipVerify = *imapConfig.InsecureSkipVerify
 	}
 
 	// Error if the minimum config is not set
