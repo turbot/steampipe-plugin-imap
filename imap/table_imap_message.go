@@ -282,7 +282,6 @@ func tableIMAPParsedMessage(ctx context.Context, d *plugin.QueryData, h *plugin.
 		Mailbox:   mw.Mailbox,
 		Envelope:  env,
 		From:      env.GetHeader("From"),
-		MessageID: env.GetHeader("Message-Id"),
 		InReplyTo: env.GetHeaderValues("In-Reply-To"),
 	}
 
