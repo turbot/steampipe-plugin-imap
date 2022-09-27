@@ -1,3 +1,14 @@
+## v0.2.0 [2022-09-27]
+
+_Dependencies_
+
+- Recompiled plugin with [steampipe-plugin-sdk v4.1.7](https://github.com/turbot/steampipe-plugin-sdk/blob/main/CHANGELOG.md#v417-2022-09-08) which includes several caching and memory management improvements. ([#15](https://github.com/turbot/steampipe-plugin-imap/pull/15))
+- Recompiled plugin with Go version `1.19`. ([#15](https://github.com/turbot/steampipe-plugin-imap/pull/15))
+
+_Bug fixes_
+
+- Fixed the `message_id` column of `imap_message` table to return `null` if it is invalid UTF-8. ([#5](https://github.com/turbot/steampipe-plugin-imap/pull/5))
+
 ## v0.1.1 [2022-05-23]
 
 _Bug fixes_
