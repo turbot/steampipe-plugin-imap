@@ -5,6 +5,8 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"os"
+	"strconv"
 
 	"github.com/emersion/go-imap/client"
 
@@ -16,7 +18,18 @@ func login(ctx context.Context, d *plugin.QueryData) (*client.Client, error) {
 	port := 993
 	tlsEnabled := true
 	insecureSkipVerify := false
-	var host, login, password string
+
+	// Check env var settings
+	host := os.Getenv("IMAP_HOST")
+	login := os.Getenv("IMAP_LOGIN")
+	password := os.Getenv("IMAP_PASSWORD")
+
+	if portString, ok := os.LookupEnv("IMAP_PORT"); ok {
+		p, err := strconv.Atoi(portString)
+		if err == nil {
+			port = p
+		}
+	}
 
 	// Prefer config settings
 	imapConfig := GetConfig(d.Connection)
