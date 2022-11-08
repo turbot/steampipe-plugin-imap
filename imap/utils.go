@@ -63,6 +63,11 @@ func login(ctx context.Context, d *plugin.QueryData) (*client.Client, error) {
 		return nil, errors.New("password must be configured")
 	}
 
+	// Error is port not valid
+	if !validatePort(port) {
+		return nil, errors.New("port must be an integer value of 143, 993 or between 1024-65535")
+	}
+
 	// Connect to server
 	hostPort := fmt.Sprintf("%s:%d", host, port)
 	var c *client.Client
@@ -84,4 +89,8 @@ func login(ctx context.Context, d *plugin.QueryData) (*client.Client, error) {
 	}
 
 	return c, nil
+}
+
+func validatePort(port int) bool {
+	return port == 143 || port == 993 || (port >= 1024 && port <= 65535)
 }
