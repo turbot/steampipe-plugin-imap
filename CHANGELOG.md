@@ -1,3 +1,9 @@
+## v0.3.0 [2022-11-10]
+
+_Enhancements_
+
+- Added environment variables for setting the `host`, `login`, `password`, and `port` config arguments. ([#18](https://github.com/turbot/steampipe-plugin-imap/pull/18)) (Thanks to [@graza-io](https://github.com/graza-io) for the additions!)
+
 ## v0.2.0 [2022-09-27]
 
 _Dependencies_
