@@ -70,7 +70,7 @@ connection "imap" {
 - `host` - Hostname of the IMAP server. Required. Can also be set with the `IMAP_HOST` environment variable.
 - `login` - Login name, usually the email address. Required. Can also be set with the `IMAP_LOGIN` environment variable.
 - `password` - Password. Required. Can also be set with the `IMAP_PASSWORD` environment variable.
-- `port` - Port to connect on the host, usually 143 for IMAP and 993 for IMAPS. Default 993. Can also be set with the `IMAP_PORT` environment variable.
+- `port` - Port to connect on the host, usually 143 for IMAP and 993 for IMAPS. Valid values are 143, 993, or a value between 1024 and 65535. Default 993. Can also be set with the `IMAP_PORT` environment variable.
 - `tls_enabled` - If true, use TLS to connecto the host. Default true.
 - `insecure_skip_verify` - If true, skip certificate verification. Default false.
 - `mailbox` - The mailbox to query for messages if not specifically given in the query. Default is INBOX.
