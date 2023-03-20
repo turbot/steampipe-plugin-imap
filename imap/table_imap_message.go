@@ -10,9 +10,9 @@ import (
 	"github.com/emersion/go-imap"
 	"github.com/jhillyerd/enmime"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func tableIMAPMessage(ctx context.Context) *plugin.Table {
@@ -95,7 +95,7 @@ func tableIMAPMessageList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 	}
 	// Convenience
 	quals := d.Quals
-	keyQuals := d.KeyColumnQuals
+	keyQuals := d.EqualsQuals
 
 	// Select the mailbox for queries:
 	// 1. Check the mailbox qual
