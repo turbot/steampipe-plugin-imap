@@ -5,8 +5,8 @@ import (
 
 	"github.com/emersion/go-imap"
 
-	"github.com/turbot/steampipe-plugin-sdk/v4/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v4/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 )
 
 func tableIMAPMailbox(ctx context.Context) *plugin.Table {
@@ -49,8 +49,8 @@ func tableIMAPMailboxList(ctx context.Context, d *plugin.QueryData, _ *plugin.Hy
 
 	// Default to all mailboxes, but limit to the requested mailbox if given in a qual
 	name := "*"
-	if d.KeyColumnQuals["name"] != nil {
-		name = d.KeyColumnQuals["name"].GetStringValue()
+	if d.EqualsQuals["name"] != nil {
+		name = d.EqualsQuals["name"].GetStringValue()
 	}
 
 	// List mailboxes
