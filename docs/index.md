@@ -80,4 +80,4 @@ By default, variables in the configuration file will take precedence over any co
 ## Get involved
 
 - Open source: https://github.com/turbot/steampipe-plugin-imap
-- Community: [Slack Channel](https://steampipe.io/community/join)
+- Community: [Join #steampipe on Slack →](https://turbot.com/community/join)
