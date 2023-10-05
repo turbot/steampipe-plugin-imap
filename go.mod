@@ -3,7 +3,7 @@ module github.com/turbot/steampipe-plugin-imap
 go 1.21
 
 require (
-	github.com/emersion/go-imap v1.2.0
+	github.com/emersion/go-imap v1.2.1
 	github.com/jhillyerd/enmime v0.9.3
 	github.com/turbot/steampipe-plugin-sdk/v5 v5.6.2
 )
