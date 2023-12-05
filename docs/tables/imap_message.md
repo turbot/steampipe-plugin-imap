@@ -11,6 +11,12 @@ Internet Message Access Protocol (IMAP) is an Internet standard protocol used by
 
 The `imap_message` table provides insights into messages within an IMAP server. As a system administrator, explore message-specific details through this table, including sender, recipient, subject, and associated metadata. Utilize it to uncover information about messages, such as those with specific subjects, from certain senders, or sent at particular dates.
 
+**Important Notes**
+- All queries are against a single mailbox, chosen in this order of precedence:
+  1. A `where mailbox = 'INBOX'` qualifier in the query.
+  2. The `mailbox` config setting in `imap.spc`.
+  3. Default is `INBOX`.
+
 ## Examples
 
 ### List messages from the default mailbox (e.g. INBOX)
