@@ -16,42 +16,68 @@ The `imap_mailbox` table provides insights into mailboxes within an IMAP server.
 ### List all mailboxs
 Discover the segments that encompass all your mailboxes, providing a comprehensive view of your email landscape. This is useful for gaining an overall understanding of your email organization and management.
 
-```sql
+```sql+postgres
 select
   *
 from
-  imap_mailbox
+  imap_mailbox;
+```
+
+```sql+sqlite
+select
+  *
+from
+  imap_mailbox;
 ```
 
 ### Get a specific mailbox
 Explore the specific mailbox that has been marked as important or noteworthy in your email system. This is useful to quickly identify and access important communications without having to manually search through all your emails.
 
-```sql
+```sql+postgres
 select
   *
 from
   imap_mailbox
 where
-  name = '[Gmail]/Starred'
+  name = '[Gmail]/Starred';
+```
+
+```sql+sqlite
+select
+  *
+from
+  imap_mailbox
+where
+  name = '[Gmail]/Starred';
 ```
 
 ### Mailboxes by message count
 Explore which mailboxes contain the highest number of messages to better manage storage and prioritize clean-up efforts.
 
-```sql
+```sql+postgres
 select
   name,
   messages
 from
   imap_mailbox
 order by
-  messages desc
+  messages desc;
+```
+
+```sql+sqlite
+select
+  name,
+  messages
+from
+  imap_mailbox
+order by
+  messages desc;
 ```
 
 ### Mailboxes with unseen messages
 Identify mailboxes that contain unread messages to prioritize checking and responding to these communications.
 
-```sql
+```sql+postgres
 select
   name,
   unseen
@@ -60,17 +86,33 @@ from
 where
   unseen > 0
 order by
-  unseen desc
+  unseen desc;
+```
+
+```sql+sqlite
+select
+  name,
+  unseen
+from
+  imap_mailbox
+where
+  unseen > 0
+order by
+  unseen desc;
 ```
 
 ### Get all mailboxes with the Important attribute
 Explore which mailboxes have been marked as important. This is useful for prioritizing email management and focusing on high-priority communications.
 
-```sql
+```sql+postgres
 select
   *
 from
   imap_mailbox
 where
   attributes ? '\Important'
+```
+
+```sql+sqlite
+Error: SQLite does not support querying JSON objects with a specific key using the '?' operator.
 ```
