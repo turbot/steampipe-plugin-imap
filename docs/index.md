@@ -78,7 +78,4 @@ connection "imap" {
 
 By default, variables in the configuration file will take precedence over any configured environment variables.
 
-## Get involved
 
-- Open source: https://github.com/turbot/steampipe-plugin-imap
-- Community: [Join #steampipe on Slack →](https://turbot.com/community/join)
