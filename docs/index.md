@@ -8,6 +8,7 @@ short_name: "imap"
 description: "Steampipe plugin to query mailboxes and messages using IMAP."
 og_description: "Query IMAP with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/imap-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # IMAP + Steampipe
