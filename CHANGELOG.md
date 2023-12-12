@@ -4,7 +4,7 @@ _What's new?_
 
 - The plugin can now be downloaded and used with the [Steampipe CLI](https://steampipe.io/downloads), as a [Postgres FDW](https://steampipe.io/docs/steampipe_postgres/overview), as a [SQLite extension](https://steampipe.io/docs//steampipe_sqlite/overview) and as a standalone [exporter](https://steampipe.io/docs/steampipe_export/overview). ([#40](https://github.com/turbot/steampipe-plugin-imap/pull/40))
 - The table docs have been updated to provide corresponding example queries for Postgres FDW and SQLite extension. ([#40](https://github.com/turbot/steampipe-plugin-imap/pull/40))
-- Docs license updated to match Steampipe [CC BY-NC-ND license](https://github.com/turbot/steampipe-plugin-aiven/blob/main/docs/LICENSE). ([#40](https://github.com/turbot/steampipe-plugin-imap/pull/40))
+- Docs license updated to match Steampipe [CC BY-NC-ND license](https://github.com/turbot/steampipe-plugin-imap/blob/main/docs/LICENSE). ([#40](https://github.com/turbot/steampipe-plugin-imap/pull/40))
 
 _Dependencies_
 
