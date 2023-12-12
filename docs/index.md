@@ -8,13 +8,14 @@ short_name: "imap"
 description: "Steampipe plugin to query mailboxes and messages using IMAP."
 og_description: "Query IMAP with SQL! Open source CLI. No DB required."
 og_image: "/images/plugins/turbot/imap-social-graphic.png"
+engines: ["steampipe", "sqlite", "postgres", "export"]
 ---
 
 # IMAP + Steampipe
 
 IMAP is a protocol for email access and management.
 
-[Steampipe](https://steampipe.io) is an open source CLI to instantly query cloud APIs using SQL.
+[Steampipe](https://steampipe.io) is an open-source zero-ETL engine to instantly query cloud APIs using SQL.
 
 List messages from your inbox:
 
@@ -77,7 +78,4 @@ connection "imap" {
 
 By default, variables in the configuration file will take precedence over any configured environment variables.
 
-## Get involved
 
-- Open source: https://github.com/turbot/steampipe-plugin-imap
-- Community: [Join #steampipe on Slack →](https://turbot.com/community/join)
