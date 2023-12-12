@@ -2,41 +2,16 @@ package imap
 
 import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/schema"
 )
 
 type imapConfig struct {
-	Host               *string `cty:"host"`
-	Port               *int    `cty:"port"`
-	Login              *string `cty:"login"`
-	Password           *string `cty:"password"`
-	TLSEnabled         *bool   `cty:"tls_enabled"`
-	InsecureSkipVerify *bool   `cty:"insecure_skip_verify"`
-	Mailbox            *string `cty:"mailbox"`
-}
-
-var ConfigSchema = map[string]*schema.Attribute{
-	"host": {
-		Type: schema.TypeString,
-	},
-	"port": {
-		Type: schema.TypeInt,
-	},
-	"login": {
-		Type: schema.TypeString,
-	},
-	"password": {
-		Type: schema.TypeString,
-	},
-	"tls_enabled": {
-		Type: schema.TypeBool,
-	},
-	"insecure_skip_verify": {
-		Type: schema.TypeBool,
-	},
-	"mailbox": {
-		Type: schema.TypeString,
-	},
+	Host               *string `hcl:"host"`
+	Port               *int    `hcl:"port"`
+	Login              *string `hcl:"login"`
+	Password           *string `hcl:"password"`
+	TLSEnabled         *bool   `hcl:"tls_enabled"`
+	InsecureSkipVerify *bool   `hcl:"insecure_skip_verify"`
+	Mailbox            *string `hcl:"mailbox"`
 }
 
 func ConfigInstance() interface{} {
