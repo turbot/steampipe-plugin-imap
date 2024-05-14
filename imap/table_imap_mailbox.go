@@ -17,7 +17,7 @@ func tableIMAPMailbox(ctx context.Context) *plugin.Table {
 			Hydrate:    tableIMAPMailboxList,
 			KeyColumns: plugin.OptionalColumns([]string{"name"}),
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			// Top columns
 			{Name: "name", Type: proto.ColumnType_STRING, Description: "Name of the mailbox, e.g. 'INBOX', '[Gmail]/Drafts'."},
 			// Other columns
@@ -29,7 +29,7 @@ func tableIMAPMailbox(ctx context.Context) *plugin.Table {
 			{Name: "recent", Type: proto.ColumnType_INT, Hydrate: tableIMAPMailboxGet, Description: "The number of messages not seen since the last time the mailbox was opened."},
 			{Name: "unseen", Type: proto.ColumnType_INT, Hydrate: tableIMAPMailboxGet, Description: "The number of unread messages."},
 			{Name: "read_only", Type: proto.ColumnType_BOOL, Hydrate: tableIMAPMailboxGet, Description: "True if the mailbox is open in read-only mode."},
-		},
+		}),
 	}
 }
 
