@@ -32,7 +32,7 @@ func tableIMAPMessage(ctx context.Context) *plugin.Table {
 				{Name: "query", Require: plugin.Optional},
 			},
 		},
-		Columns: []*plugin.Column{
+		Columns: commonColumns([]*plugin.Column{
 			// Top columns
 			{Name: "timestamp", Type: proto.ColumnType_TIMESTAMP, Hydrate: tableIMAPParsedMessage, Description: "Time when the message was sent."},
 			{Name: "from_email", Type: proto.ColumnType_STRING, Hydrate: tableIMAPParsedMessage, Transform: transform.FromField("FromAddresses").Transform(getFirstAddress), Description: "Email address, in lower case, of the first (and usually only) mailbox in the From header."},
@@ -55,7 +55,7 @@ func tableIMAPMessage(ctx context.Context) *plugin.Table {
 			{Name: "in_reply_to", Type: proto.ColumnType_JSON, Hydrate: tableIMAPParsedMessage, Description: "Array of message IDs that this message is a reply to."},
 			{Name: "mailbox", Type: proto.ColumnType_STRING, Description: "Mailbox queried for messages."},
 			{Name: "query", Type: proto.ColumnType_STRING, Transform: transform.FromQual("query"), Description: "Search query to match messages."},
-		},
+		}),
 	}
 }
 
@@ -290,12 +290,12 @@ func tableIMAPParsedMessage(ctx context.Context, d *plugin.QueryData, h *plugin.
 	if utf8.ValidString(subject) {
 		te.Subject = subject
 	}
-	
+
 	// Even the messageID is not always valid UTF-8!
 	messageID := env.GetHeader("Message-Id")
 	if utf8.ValidString(messageID) {
 		te.MessageID = messageID
-	}	
+	}
 
 	from, err := env.AddressList("From")
 	if err == nil {
