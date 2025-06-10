@@ -7,7 +7,7 @@ toolchain go1.23.2
 require (
 	github.com/emersion/go-imap v1.2.0
 	github.com/jhillyerd/enmime v0.9.3
-	github.com/turbot/steampipe-plugin-sdk/v5 v5.11.6
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.11.7
 )
 
 require (
