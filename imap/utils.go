@@ -10,7 +10,7 @@ import (
 
 	"github.com/emersion/go-imap/client"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
 )
 
 func login(ctx context.Context, d *plugin.QueryData) (*client.Client, error) {

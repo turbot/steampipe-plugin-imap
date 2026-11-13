@@ -3,10 +3,10 @@ package imap
 import (
 	"context"
 
-	"github.com/turbot/steampipe-plugin-sdk/v5/grpc/proto"
-	"github.com/turbot/steampipe-plugin-sdk/v5/memoize"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
+	"github.com/turbot/steampipe-plugin-sdk/v6/grpc/proto"
+	"github.com/turbot/steampipe-plugin-sdk/v6/memoize"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin"
+	"github.com/turbot/steampipe-plugin-sdk/v6/plugin/transform"
 )
 
 func commonColumns(c []*plugin.Column) []*plugin.Column {
@@ -38,6 +38,6 @@ func getLoginNameCacheKey(ctx context.Context, d *plugin.QueryData, h *plugin.Hy
 
 func getLoginNameUncached(ctx context.Context, d *plugin.QueryData, h *plugin.HydrateData) (interface{}, error) {
 	cfg := GetConfig(d.Connection)
-	
+
 	return cfg.Login, nil
 }
